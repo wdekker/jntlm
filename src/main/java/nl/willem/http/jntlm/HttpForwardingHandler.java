@@ -1,7 +1,8 @@
 package nl.willem.http.jntlm;
 
-import static org.apache.http.auth.AuthScope.ANY;
-import static org.apache.http.client.config.AuthSchemes.NTLM;
+import static java.util.Collections.*;
+import static org.apache.http.auth.AuthScope.*;
+import static org.apache.http.client.config.AuthSchemes.*;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -15,6 +16,7 @@ import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -46,7 +48,8 @@ class HttpForwardingHandler implements HttpRequestHandler {
     }
 
     private ProxyClient buildProxyClient() {
-        ProxyClient proxyClient = new ProxyClient();
+        RequestConfig requestConfig = RequestConfig.custom().setProxyPreferredAuthSchemes(singleton(NTLM)).build();
+        ProxyClient proxyClient = new ProxyClient(requestConfig);
         proxyClient.getAuthSchemeRegistry().register(NTLM, new NTLMSchemeProvider());
         return proxyClient;
     }
@@ -64,9 +67,9 @@ class HttpForwardingHandler implements HttpRequestHandler {
     }
 
     private void upgradeToTunneling(HttpRequest request, HttpResponse response, UpgradableHttpContext context) throws IOException, HttpException {
-        response.setStatusLine(HttpVersion.HTTP_1_1, 200, "Connection established");
         Socket proxyTunnel = proxyClient.tunnel(proxy, createHttpHost(request), noCredentials());
         context.setUpgradedConnection(proxyTunnel);
+        response.setStatusLine(HttpVersion.HTTP_1_1, 200, "Connection established");
     }
 
     private void forward(final HttpRequest request, final HttpResponse response) throws IOException, ClientProtocolException {
