@@ -30,7 +30,7 @@ class Tunneler {
             InputStream input = from.getInputStream();
             OutputStream output = to.getOutputStream();
             int length;
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[8192];
             while (!Thread.interrupted() && !to.isClosed() && (length = input.read(buffer)) != -1) {
                 output.write(buffer, 0, length);
             }

@@ -66,7 +66,7 @@ class HttpForwardingHandler implements HttpRequestHandler {
         return "CONNECT".equalsIgnoreCase(request.getRequestLine().getMethod());
     }
 
-    private void upgradeToTunneling(HttpRequest request, HttpResponse response, UpgradableHttpContext context) throws IOException, HttpException {
+    private synchronized void upgradeToTunneling(HttpRequest request, HttpResponse response, UpgradableHttpContext context) throws IOException, HttpException {
         Socket proxyTunnel = proxyClient.tunnel(proxy, createHttpHost(request), noCredentials());
         context.setUpgradedConnection(proxyTunnel);
         response.setStatusLine(HttpVersion.HTTP_1_1, 200, "Connection established");
