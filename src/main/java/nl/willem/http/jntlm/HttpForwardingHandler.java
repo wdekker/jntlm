@@ -6,6 +6,8 @@ import static org.apache.http.client.config.AuthSchemes.*;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
@@ -17,6 +19,7 @@ import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -84,14 +87,16 @@ class HttpForwardingHandler implements HttpRequestHandler {
     }
 
     private HttpHost createHttpHost(final HttpRequest request) {
-        String uri = request.getRequestLine().getUri();
-        if (uri.contains("://")) {
-            uri = uri.substring(uri.lastIndexOf("://") + 3);
+        String uriString = request.getRequestLine().getUri();
+        if (!uriString.contains("://")) {
+            uriString = "noscheme://" + uriString;
         }
-        String[] parts = uri.split(":");
-        String host = parts[0];
-        int port = parts.length > 1 ? Integer.parseInt(parts[1]) : -1;
-        return new HttpHost(host, port);
+        try {
+            URI uri = new URI(uriString);
+            return new HttpHost(uri.getHost(), uri.getPort());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Unable to create a valid URI from string: " + uriString, e);
+        }
     }
 
 }
