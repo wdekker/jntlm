@@ -45,12 +45,5 @@ class NTLMSchemeProvider implements AuthSchemeProvider, AuthSchemeFactory {
             return Base64.encode(securityContext.getToken());
         }
         
-        @Override
-        protected void finalize() throws Throwable {
-            if (securityContext != null) {
-                securityContext.dispose();
-            }
-        }
-
     }
 }

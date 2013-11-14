@@ -28,5 +28,10 @@
             <artifactId>waffle-jna</artifactId>
             <version>1.5</version>
         </dependency>
-    </dependencies>
+        <dependency>
+        	<groupId>net.java.dev.jna</groupId>
+        	<artifactId>jna-platform</artifactId>
+        	<version>4.0.0</version>
+        </dependency>
+  </dependencies>
 </project>
