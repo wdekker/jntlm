@@ -1,8 +1,6 @@
 package nl.willem.http.jntlm;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import static com.sun.jna.platform.win32.Sspi.SECBUFFER_TOKEN;
 
 import org.apache.http.auth.AuthScheme;
 import org.apache.http.auth.AuthSchemeFactory;
@@ -13,7 +11,11 @@ import org.apache.http.impl.auth.NTLMScheme;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
-import sun.net.www.protocol.http.NTLMAuthSequence;
+import waffle.util.Base64;
+import waffle.windows.auth.IWindowsSecurityContext;
+import waffle.windows.auth.impl.WindowsSecurityContextImpl;
+
+import com.sun.jna.platform.win32.Sspi.SecBufferDesc;
 
 class NTLMSchemeProvider implements AuthSchemeProvider, AuthSchemeFactory {
 
@@ -28,30 +30,25 @@ class NTLMSchemeProvider implements AuthSchemeProvider, AuthSchemeFactory {
 
     private static class SSONTLMEngine implements NTLMEngine {
 
-        private NTLMAuthSequence sequence;
+        private IWindowsSecurityContext securityContext;
 
         @Override
         public String generateType1Msg(String domain, String workstation) throws NTLMEngineException {
-            try {
-                newSequence(null);
-                return sequence.getAuthHeader(null);
-            } catch (Exception e) {
-                throw new NTLMEngineException("Problem getting a type 1 message.", e);
-            }
-        }
-
-        private void newSequence(String domain) throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
-            Constructor<?> constructor = NTLMAuthSequence.class.getDeclaredConstructors()[0];
-            constructor.setAccessible(true);
-            sequence = (NTLMAuthSequence) constructor.newInstance(null, null, domain);
+            securityContext = WindowsSecurityContextImpl.getCurrent("NTLM", null);
+            return Base64.encode(securityContext.getToken());
         }
 
         @Override
         public String generateType3Msg(String username, String password, String domain, String workstation, String challenge) throws NTLMEngineException {
-            try {
-                return sequence.getAuthHeader(challenge);
-            } catch (IOException e) {
-                throw new NTLMEngineException("Problem getting new type 3 message.", e);
+            SecBufferDesc buffer = new SecBufferDesc(SECBUFFER_TOKEN, Base64.decode(challenge));
+            securityContext.initialize(securityContext.getHandle(), buffer, null);
+            return Base64.encode(securityContext.getToken());
+        }
+        
+        @Override
+        protected void finalize() throws Throwable {
+            if (securityContext != null) {
+                securityContext.dispose();
             }
         }
 
