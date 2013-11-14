@@ -1,8 +1,8 @@
 package nl.willem.http.jntlm;
 
-import static java.util.Collections.*;
-import static org.apache.http.auth.AuthScope.*;
-import static org.apache.http.client.config.AuthSchemes.*;
+import static java.util.Collections.singleton;
+import static org.apache.http.auth.AuthScope.ANY;
+import static org.apache.http.client.config.AuthSchemes.NTLM;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -19,7 +19,6 @@ import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -46,7 +45,8 @@ class HttpForwardingHandler implements HttpRequestHandler {
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(ANY, noCredentials());
         Registry<AuthSchemeProvider> registry = RegistryBuilder.<AuthSchemeProvider> create().register(NTLM, new NTLMSchemeProvider()).build();
-        return HttpClients.custom().setRoutePlanner(new DefaultProxyRoutePlanner(proxy)).setDefaultAuthSchemeRegistry(registry)
+        RequestConfig requestConfig = RequestConfig.custom().setProxyPreferredAuthSchemes(singleton(NTLM)).build();
+        return HttpClients.custom().setDefaultRequestConfig(requestConfig).setRoutePlanner(new DefaultProxyRoutePlanner(proxy)).setDefaultAuthSchemeRegistry(registry)
                 .setDefaultCredentialsProvider(credentialsProvider).disableRedirectHandling().build();
     }
 
