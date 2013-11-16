@@ -66,7 +66,7 @@ class ProxyProxy extends Thread {
         @Override
         public void run() {
             int connections = connectionCount.incrementAndGet();
-            System.out.println("New connection thread (" + connectionCount.incrementAndGet() + ")");
+            System.out.println("New connection thread (" + connections + ")");
             UpgradableHttpContext context = new UpgradableHttpContext();
             HttpServerConnection conn = null;
             try {
