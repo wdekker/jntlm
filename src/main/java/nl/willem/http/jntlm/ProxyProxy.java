@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpException;
@@ -28,7 +29,7 @@ class ProxyProxy extends Thread {
         UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
         reqistry.register("*", new HttpForwardingHandler(proxy));
         this.httpService = new HttpService(httpproc, new UpgradedConnectionAwareReusingStrategy(), null, reqistry);
-        
+
     }
 
     @Override
@@ -52,6 +53,8 @@ class ProxyProxy extends Thread {
 
     private static class WorkerThread extends Thread {
 
+        private static AtomicInteger connectionCount = new AtomicInteger();
+
         private final HttpService httpservice;
         private final Socket socket;
 
@@ -62,7 +65,8 @@ class ProxyProxy extends Thread {
 
         @Override
         public void run() {
-            System.out.println("New connection thread");
+            int connections = connectionCount.incrementAndGet();
+            System.out.println("New connection thread (" + connectionCount.incrementAndGet() + ")");
             UpgradableHttpContext context = new UpgradableHttpContext();
             HttpServerConnection conn = null;
             try {
@@ -82,6 +86,8 @@ class ProxyProxy extends Thread {
                 System.err.println("Unrecoverable HTTP protocol violation: " + ex.getMessage());
                 ex.printStackTrace();
             } finally {
+                System.out.println("Connection thread: " + connections + " closed");
+                connectionCount.decrementAndGet();
                 try {
                     if (conn != null) {
                         conn.shutdown();

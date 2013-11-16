@@ -1,8 +1,8 @@
 package nl.willem.http.jntlm;
 
-import static java.util.Collections.singleton;
-import static org.apache.http.auth.AuthScope.ANY;
-import static org.apache.http.client.config.AuthSchemes.NTLM;
+import static java.util.Collections.*;
+import static org.apache.http.auth.AuthScope.*;
+import static org.apache.http.client.config.AuthSchemes.*;
 
 import java.io.IOException;
 import java.net.Socket;
