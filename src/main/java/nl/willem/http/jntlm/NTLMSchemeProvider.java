@@ -72,7 +72,7 @@ class NTLMSchemeProvider implements AuthSchemeProvider, AuthSchemeFactory {
             securityContext = new CtxtHandle();
             int rc = Secur32.INSTANCE.InitializeSecurityContext(credentials, previousContext, null, ISC_REQ_CONNECTION, 0, SECURITY_NATIVE_DREP, buffer, 0,
                     securityContext, token, attr, null);
-            if (rc != SEC_I_CONTINUE_NEEDED || rc != SEC_E_OK) {
+            if (rc != SEC_I_CONTINUE_NEEDED && rc != SEC_E_OK) {
                 throw new Win32Exception(rc);
             }
             return token.getBytes();
