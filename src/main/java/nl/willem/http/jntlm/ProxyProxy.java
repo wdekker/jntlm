@@ -2,6 +2,7 @@ package nl.willem.http.jntlm;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -22,8 +23,8 @@ class ProxyProxy extends Thread {
     private final ServerSocket serversocket;
     private final HttpService httpService;
 
-    ProxyProxy(final int port, final HttpHost proxy) throws IOException {
-        this.serversocket = new ServerSocket(port);
+    ProxyProxy(int listenPort, InetAddress listenAddress, HttpHost proxy) throws IOException {
+        this.serversocket = new ServerSocket(listenPort, 0, listenAddress);
 
         HttpProcessor httpproc = HttpProcessorBuilder.create().add(new ResponseConnControl()).build();
         UriHttpRequestHandlerMapper reqistry = new UriHttpRequestHandlerMapper();
@@ -34,7 +35,7 @@ class ProxyProxy extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Listening on port " + this.serversocket.getLocalPort());
+        System.out.println("Listening on port " + serversocket.getLocalPort() + " on address " + serversocket.getInetAddress());
         while (!Thread.interrupted()) {
             try {
                 Socket socket = this.serversocket.accept();
