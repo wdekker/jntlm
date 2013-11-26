@@ -1,6 +1,7 @@
 package nl.willem.http.jntlm;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import org.apache.http.HttpHost;
 
@@ -34,9 +35,15 @@ public class JNTLM {
     }
 
     private static InetAddress extractListenAddress(String[] args) {
-        InetAddress listenAddress = InetAddress.getLoopbackAddress();
+        InetAddress listenAddress = null;
         if (args.length >= 4 && "open".equals(args[3])) {
             listenAddress = null;
+        } else {
+            try {
+                listenAddress = InetAddress.getByName("::1");
+            } catch (UnknownHostException e) {
+                throw new RuntimeException("Cannot get loopback address", e);
+            }
         }
         return listenAddress;
     }
