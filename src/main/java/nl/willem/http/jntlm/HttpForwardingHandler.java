@@ -1,22 +1,8 @@
 package nl.willem.http.jntlm;
 
-import static java.util.Collections.*;
-import static org.apache.http.auth.AuthScope.*;
-import static org.apache.http.client.config.AuthSchemes.*;
-
-import java.io.IOException;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
+import org.apache.http.*;
 import org.apache.http.auth.AuthSchemeProvider;
 import org.apache.http.auth.NTCredentials;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
@@ -28,6 +14,15 @@ import org.apache.http.impl.client.ProxyClient;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpRequestHandler;
+
+import java.io.IOException;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import static java.util.Collections.singleton;
+import static org.apache.http.auth.AuthScope.ANY;
+import static org.apache.http.client.config.AuthSchemes.NTLM;
 
 class HttpForwardingHandler implements HttpRequestHandler {
 
@@ -75,7 +70,8 @@ class HttpForwardingHandler implements HttpRequestHandler {
         response.setStatusLine(HttpVersion.HTTP_1_1, 200, "Connection established");
     }
 
-    private void forward(final HttpRequest request, final HttpResponse response) throws IOException, ClientProtocolException {
+    private void forward(final HttpRequest request, final HttpResponse response) throws IOException {
+        System.out.println("Request to: " + request);
         HttpResponse clientResponse = httpClient.execute(createHttpHost(request), request);
         response.setStatusLine(clientResponse.getStatusLine());
         response.setHeaders(clientResponse.getAllHeaders());
